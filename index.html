@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Spotify to YouTube Playlist Converter</title>
+    <meta name="author" content="Patrick Jung">
+    <meta name="description" content="Generates a YouTube playlist from a Spotify playlist URL.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="css/normalize.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body>
+    <font face="verdana">
+        <center>
+            <h3>
+                Spotify to Youtube Playlist Converter
+            </h3>
+            <br><br><br><br><br>
+            <h5>
+                Enter a playlist link:
+            </h5>
+
+            <input type="text" id="inputURL" value="" style="width:250px">
+            <input type="button" id="inputSubmit" value="Convert" onclick="extractHTML(inputURL.value)">
+        </center>
+    </font>
+
+    <script src="https://requirejs.org/docs/release/2.3.5/minified/require.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="js/script.js"></script>
+</body>
+
+</html>
