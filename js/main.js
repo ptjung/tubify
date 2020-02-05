@@ -8,7 +8,7 @@ function extractHTML(paramURL)
     //});
 
     //$.ajax({
-         //url: 'http://www.whateverorigin.org/get?url=' + encodeURIComponent(paramURL) + '&callback=?',
+         //url: 'https://www.whateverorigin.org/get?url=' + encodeURIComponent(paramURL) + '&callback=?',
          //dataType: 'text',
          //success: function(data) {
               //var elements = $("<div>").html(data)[0].getElementsByTagName("title");
