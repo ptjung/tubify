@@ -20,7 +20,7 @@ function extractHTML(paramURL)
          //}
     //});
 
-    $.get('http://www.whateverorigin.org/get?url=' + encodeURIComponent(paramURL) + '&callback=?', function(response) {
+    $.get('https://www.whateverorigin.org/get?url=' + encodeURIComponent(paramURL) + '&callback=?', function(response) {
         console.log(response);
         alert(response);
     });
