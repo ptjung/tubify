@@ -16,17 +16,20 @@
         <h3>
             Spotify to Youtube Playlist Converter
         </h3>
-        <!--<br><br><br><br><br>-->
-        <div id="spacing" style="height: 15%"></div>
+        <div id="spacing_1" style="height: 15%"></div>
         <h5>
             Enter a playlist link:
         </h5>
 
         <input type="text" id="inputURL" value="" style="width: 250px; padding: 5px">
-        <input type="button" id="inputSubmit" value="Convert" onclick="extractHTML(inputURL.value)" style="padding: 5px">
+        <input type="button" id="inputSubmit" value="Convert" onclick="makePlaylist(inputURL.value)" style="padding: 5px">
 
-        <script src="https://requirejs.org/docs/release/2.3.5/minified/require.js"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <div id="spacing_2" style="height: 10%"></div>
+        <h5 id="reporter"><br></h5>
+        <input type="text" id="outputURL" value="" style="width: 250px; padding: 5px" readonly>
+        <input type="button" id="outputCopy" value="Copy" onclick="copyToClipboard()" style="padding: 5px">
+        <input type="button" id="outputOpen" value="Open" onclick="openLinkWindow()" style="padding: 5px">
+
         <script src="js/main.js"></script>
     </body>
 
