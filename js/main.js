@@ -1,3 +1,15 @@
+console.log("<< main.js >>");
+
+let xHttp = new XMLHttpRequest();
+xHttp.onreadystatechange = function() {
+    if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+
+        console.log(this.responseText);
+    }
+};
+xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + "https://www.google.com/search?q=Evdeki Saat - Ekin", true);
+xHttp.send();
+
 function copyToClipboard() {
     // Copies the output URL text to clipboard
     let copyText = document.getElementById("outputURL");
@@ -128,12 +140,13 @@ function addSearchVideoID(paramSong) {
             let searchResults = this.responseText;
 
             // Use Google search query to get the ID of the first video result from searching <paramSong>
-            let nameIndexInit = searchResults.indexOf(HTML_SEARCH_TERM) + HTML_SEARCH_TERM.length;
+            let firstOccurence = searchResults.indexOf(HTML_SEARCH_TERM);
+            let nameIndexInit = firstOccurence + HTML_SEARCH_TERM.length;
             let nameIndexEnd = searchResults.indexOf("\"", nameIndexInit + 1);
             let resName = searchResults.substring(nameIndexInit, nameIndexEnd);
 
             // Append the ID to the output YouTube link
-            if (nameIndexInit >= 0) {
+            if (firstOccurence >= 0) {
                 let elemOutURL = document.getElementById("outputURL");
                 if ((elemOutURL.value).indexOf(resName) < 0) {
                     elemOutURL.value += resName + ",";
@@ -150,7 +163,7 @@ function addSearchVideoID(paramSong) {
             console.log("ERROR 2 (" + paramSong + "): Song cannot be requested (readyState=\"" + this.readyState + "\", status=\"" + this.status + "\")");
         }
     };
-    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramSong, true);
+    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramSong.replace(" ", "%20"), true);
     xHttp.send();
 }
 
