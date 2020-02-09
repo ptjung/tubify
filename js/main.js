@@ -14,20 +14,6 @@ function openLinkWindow() {
     }
 }
 
-function countSubstring(paramString, paramStringSub) {
-    if ((paramString.length > 0) && (paramStringSub.length > 0)) {
-        let count = -1;
-        let index = -1;
-        do {
-            index++;
-            count++;
-            index = paramString.indexOf(paramStringSub, index);
-        } while (index >= 0);
-        return count;
-    }
-    return 0;
-}
-
 function accessTrackList(paramURL) {
     const HTML_SEARCH_LINK = "open.spotify.com/embed";
 
@@ -77,7 +63,7 @@ function makePlaylist(paramURL) {
                 for (let linkIndex = 0; linkIndex < searchLinks.length; linkIndex++) {
                     setTimeout(function() {
                         searchSpotify(searchLinks[linkIndex]);
-                    }, 175 * linkIndex);
+                    }, 50 * linkIndex);
                 }
 
                 setTimeout(function() {
@@ -85,7 +71,7 @@ function makePlaylist(paramURL) {
                     document.getElementById("reporter").innerHTML = MESSAGE_FINISH;
                     document.getElementById("outputCopy").disabled = false;
                     document.getElementById("outputOpen").disabled = false;
-                }, 350 * searchLinks.length);
+                }, 100 * searchLinks.length);
 
             }
         };
@@ -154,14 +140,15 @@ function addSearchVideoID(paramSong) {
                 if ((elemOutURL.value).indexOf(resName) < 0) {
                     elemOutURL.value += resName + ",";
                 }
+                console.log("ADDED SONG ID: " + resName);
             }
             else {
-                console.log("ERROR: No YouTube link for \"" + paramSong + "\"");
+                //console.log("ERROR: No YouTube link for \"" + paramSong + "\"");
             }
 
         }
         else {
-            console.log("ERROR: Song cannot be requested \"" + paramSong + "\"");
+            //console.log("ERROR: Song cannot be requested \"" + paramSong + "\"");
         }
     };
     xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramSong, true);
