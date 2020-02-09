@@ -59,7 +59,7 @@ function makePlaylist(paramURL) {
                 }
 
                 // Search all the Spotify songs to get their respective YouTube video IDs (if they exist)
-                console.log("FOUND SONG COUNT: " + searchLinks.length);
+                console.log("POTENTIAL SONG COUNT: " + searchLinks.length);
                 for (let linkIndex = 0; linkIndex < searchLinks.length; linkIndex++) {
                     setTimeout(function() {
                         searchSpotify(searchLinks[linkIndex]);
@@ -121,8 +121,6 @@ function addSearchVideoID(paramSong) {
     const HTML_SEARCH_TERM = "https://www.youtube.com/watch?v=";
     const SEARCH_QUERIER = "https://www.google.com/search?q=";
 
-    console.log("REQUEST SONG: " + paramSong);
-
     // This block represents a YouTube search query request
     let xHttp = new XMLHttpRequest();
     xHttp.onreadystatechange = function() {
@@ -140,15 +138,16 @@ function addSearchVideoID(paramSong) {
                 if ((elemOutURL.value).indexOf(resName) < 0) {
                     elemOutURL.value += resName + ",";
                 }
-                console.log("ADDED SONG ID: " + resName);
+                console.log("APPENDED (name=\"" + paramSong + "\", id=\"" + resName + "\")");
+                console.log("CONTENT AT AREA (len=1000): [" + searchResults.substring(nameIndexInit - HTML_SEARCH_TERM.length, nameIndexInit - HTML_SEARCH_TERM.length + 1000)) + "]";
             }
             else {
-                //console.log("ERROR: No YouTube link for \"" + paramSong + "\"");
+                console.log("ERROR 1 (" + paramSong + "): No YouTube link found");
             }
 
         }
         else {
-            //console.log("ERROR: Song cannot be requested \"" + paramSong + "\"");
+            console.log("ERROR 2 (" + paramSong + "): Song cannot be requested (readyState=\"" + this.readyState + "\", status=\"" + this.status + "\")");
         }
     };
     xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramSong, true);
@@ -189,7 +188,7 @@ function getSearches(paramContent) {
                 searches.push(line.substring(linkIndex, linkIndex + LINK_LENGTH));
             }
             for (let trackIndex = 0; trackIndex < searches.length; trackIndex++) {
-                console.log("Track " + (trackIndex + 1) + ": " + searches[trackIndex]);
+                console.log("TRACK #" + (trackIndex + 1) + ": " + searches[trackIndex]);
             }
             return searches;
         }
