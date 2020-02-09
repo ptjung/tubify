@@ -66,7 +66,7 @@ function makePlaylist(paramURL) {
                         document.getElementById("reporter").innerHTML = MESSAGE_FINISH;
                         document.getElementById("outputCopy").disabled = false;
                         document.getElementById("outputOpen").disabled = false;
-                    }, 500 * searchLinks.length);
+                    }, 300 * searchLinks.length);
                 }, 100);
             }
         };
@@ -126,7 +126,9 @@ function addSearchVideoID(paramSong) {
 function getSearches(paramContent) {
     const LINK_LENGTH = 45;
     const SONG_LINK_STARTER = "open.spotify.com/track";
+
     paramContent = paramContent.replace(/\\/g, '');
+    console.log("CONTENT: " + paramContent);
 
     // Loop through all lines in the HTML content (max: 64)
     let htmlContent = paramContent.split('\n');
@@ -155,7 +157,7 @@ function getSearches(paramContent) {
                 searches.push(line.substring(linkIndex, linkIndex + LINK_LENGTH));
             }
             for (let trackIndex = 0; trackIndex < searches.length; trackIndex++) {
-                console.log(trackIndex + ": " + searches[trackIndex]);
+                console.log("Track " + trackIndex + ": " + searches[trackIndex]);
             }
             return searches;
         }
