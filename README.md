@@ -11,12 +11,15 @@ A website for converting Spotify playlists to their respective YouTube playlists
 
 ## Known Bugs
 
-* Resulting YouTube videos may differ slightly.
+* Larger playlists easily cause the server to refuse song requests
+* YouTube videos that are picked for a song can vary between other versions
+  * Different versions can result in duplicate videos of the same song
+  * In rare occasions, completely unrelated YouTube videos can be picked
 
 ## Changelog
 
 (February 8, 2020)
-* Quick patch of Spotify-Youtube-Converter.
+* Quick patches of Spotify-Youtube-Converter.
   * Bug fix: larger playlists do not have all of their songs converted
   * Bug fix: permanent freezing when converting specific songs
 * Released Spotify-Youtube-Converter version 1.0.
