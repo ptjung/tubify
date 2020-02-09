@@ -14,6 +14,20 @@ function openLinkWindow() {
     }
 }
 
+function countSubstring(paramString, paramStringSub) {
+    if ((paramString.length > 0) && (paramStringSub.length > 0)) {
+        let count = -1;
+        let index = -1;
+        do {
+            index++;
+            count++;
+            index = paramString.indexOf(paramStringSub, index);
+        } while (index >= 0);
+        return count;
+    }
+    return 0;
+}
+
 function accessTrackList(paramURL) {
     const HTML_SEARCH_LINK = "open.spotify.com/embed";
 
@@ -42,31 +56,37 @@ function makePlaylist(paramURL) {
     if (paramURL.indexOf(EXPECT_LINK_MATERIAL) >= 0) {
         console.log("VALID REQUEST");
 
-        // Report on the website that the link is loading
-        document.getElementById("reporter").innerHTML = MESSAGE_CONVERT;
-        document.getElementById("outputCopy").disabled = true;
-        document.getElementById("outputOpen").disabled = true;
-
         // This block represents a Spotify playlist request
         let xHttp = new XMLHttpRequest();
         xHttp.onreadystatechange = function() {
             if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
-                let searchLinks = getSearches(this.responseText);
 
-                // Initialize base URL such that video IDs can be appended to it, to form a link
+                // Report on the website that the link is loading
+                document.getElementById("reporter").innerHTML = MESSAGE_CONVERT;
+                document.getElementById("outputCopy").disabled = true;
+                document.getElementById("outputOpen").disabled = true;
+
+                // Search and initialize base URL such that video IDs can be appended to it, to form a link
+                let searchLinks = getSearches(this.responseText);
                 if (searchLinks.length > 0) {
                     document.getElementById("outputURL").value = BASE_COPY_LINK;
                 }
 
                 // Search all the Spotify songs to get their respective YouTube video IDs (if they exist)
+                console.log("FOUND SONG COUNT: " + searchLinks.length);
                 for (let linkIndex = 0; linkIndex < searchLinks.length; linkIndex++) {
-                    searchSpotify(searchLinks[linkIndex]);
+                    setTimeout(function() {
+                        searchSpotify(searchLinks[linkIndex]);
+                    }, 175 * linkIndex);
                 }
 
-                // Report on the website that the link has finished loading
-                document.getElementById("reporter").innerHTML = MESSAGE_FINISH;
-                document.getElementById("outputCopy").disabled = false;
-                document.getElementById("outputOpen").disabled = false;
+                setTimeout(function() {
+                    // Report on the website that the link has finished loading
+                    document.getElementById("reporter").innerHTML = MESSAGE_FINISH;
+                    document.getElementById("outputCopy").disabled = false;
+                    document.getElementById("outputOpen").disabled = false;
+                }, 350 * searchLinks.length);
+
             }
         };
         xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + paramURL, true);
@@ -100,11 +120,11 @@ function searchSpotify(paramSearch) {
                 song = song.replace(FILTER_ARRAY[filterIndex], "");
             }
             song = song.split(", a song by ");
-            song = (song[1] + " - " + song[0]);
+            song = {author: song[1], name: song[0]};
+            song = song.author + " - " + song.name;
 
             // Use the song as a search query, for adding the video's ID to the output link
             addSearchVideoID(song);
-            console.log("REQUEST SONG: " + song);
         }
     };
     xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + "https://" + paramSearch, true);
@@ -112,25 +132,36 @@ function searchSpotify(paramSearch) {
 }
 
 function addSearchVideoID(paramSong) {
-    const HTML_SEARCH_TERM = "\"videoId\":\"";
-    const SEARCH_QUERIER = "https://www.youtube.com/results?search_query=";
+    const HTML_SEARCH_TERM = "https://www.youtube.com/watch?v=";
+    const SEARCH_QUERIER = "https://www.google.com/search?q=";
+
+    console.log("REQUEST SONG: " + paramSong);
 
     // This block represents a YouTube search query request
     let xHttp = new XMLHttpRequest();
     xHttp.onreadystatechange = function() {
         if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
-
-            // Use YouTube search query to get the ID of the first video result from searching <paramSong>
             let searchResults = this.responseText;
-            let indexInit = searchResults.indexOf(HTML_SEARCH_TERM) + HTML_SEARCH_TERM.length;
-            let indexEnd = searchResults.indexOf("\"", indexInit + 1);
-            let res = searchResults.substring(indexInit, indexEnd);
-            let elemOutURL = document.getElementById("outputURL");
+
+            // Use Google search query to get the ID of the first video result from searching <paramSong>
+            let nameIndexInit = searchResults.indexOf(HTML_SEARCH_TERM) + HTML_SEARCH_TERM.length;
+            let nameIndexEnd = searchResults.indexOf("\"", nameIndexInit + 1);
+            let resName = searchResults.substring(nameIndexInit, nameIndexEnd);
 
             // Append the ID to the output YouTube link
-            if ((elemOutURL.value).indexOf(res) < 0) {
-                elemOutURL.value += res + ",";
+            if (nameIndexInit >= 0) {
+                let elemOutURL = document.getElementById("outputURL");
+                if ((elemOutURL.value).indexOf(resName) < 0) {
+                    elemOutURL.value += resName + ",";
+                }
             }
+            else {
+                console.log("ERROR: No YouTube link for \"" + paramSong + "\"");
+            }
+
+        }
+        else {
+            console.log("ERROR: Song cannot be requested \"" + paramSong + "\"");
         }
     };
     xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramSong, true);
@@ -143,7 +174,6 @@ function getSearches(paramContent) {
     const SONG_LINK_STARTER = "open.spotify.com/track";
 
     paramContent = paramContent.replace(/\\/g, '');
-    //console.log("CONTENT: " + paramContent);
 
     // Loop through all lines in the HTML content (max: 64)
     let htmlContent = paramContent.split('\n');
@@ -172,7 +202,7 @@ function getSearches(paramContent) {
                 searches.push(line.substring(linkIndex, linkIndex + LINK_LENGTH));
             }
             for (let trackIndex = 0; trackIndex < searches.length; trackIndex++) {
-                console.log("Track " + trackIndex + ": " + searches[trackIndex]);
+                console.log("Track " + (trackIndex + 1) + ": " + searches[trackIndex]);
             }
             return searches;
         }
