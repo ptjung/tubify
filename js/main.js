@@ -78,6 +78,7 @@ function makePlaylist(paramURL) {
 }
 
 function searchSpotify(paramSearch) {
+    const FILTER_ARRAY = ["<em>", "</em>", "&#39;", "&#039;", "&quot;", "<wbr>"];
     const HTML_SEARCH_TERM = " on Spotify";
 
     // This block represents a Spotify song query request
@@ -94,8 +95,10 @@ function searchSpotify(paramSearch) {
             }
 
             // Sanitize the song string and put it in the "<author> - <songName>" format
-            let song = searchResults.substring(indexInit + 1, indexEnd)
-            song = ((((song.replace("<em>", "")).replace("</em>", "")).replace("&#39;", "")).replace("&quot;", "")).replace("<wbr>", "")
+            let song = searchResults.substring(indexInit + 1, indexEnd);
+            for (let filterIndex = 0; filterIndex < FILTER_ARRAY.length; filterIndex++) {
+                song = song.replace(FILTER_ARRAY[filterIndex], "");
+            }
             song = song.split(", a song by ");
             song = (song[1] + " - " + song[0]);
 
@@ -164,11 +167,11 @@ function getSearches(paramContent) {
 
             // Get searches from trackIndices
             let searches = [];
-            for (let trackIndex = 0; trackIndex < trackIndices.length; trackIndex++) {
+            for (let trackIndex = 0; trackIndex < Math.min(YT_VIDEO_CAP, trackIndices.length); trackIndex++) {
                 let linkIndex = trackIndices[trackIndex];
                 searches.push(line.substring(linkIndex, linkIndex + LINK_LENGTH));
             }
-            for (let trackIndex = 0; trackIndex < Math.min(YT_VIDEO_CAP, searches.length); trackIndex++) {
+            for (let trackIndex = 0; trackIndex < searches.length; trackIndex++) {
                 console.log("Track " + trackIndex + ": " + searches[trackIndex]);
             }
             return searches;
