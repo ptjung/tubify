@@ -7,7 +7,7 @@
 
 ## Program Description
 
-A website for converting Spotify playlists to their respective YouTube playlists without registration. Test it [here](https://ptjung.github.io/Spotify-Youtube-Converter)!
+A website for converting Spotify playlists to their respective YouTube playlists without registration or logging into Spotify. Test it [here](https://ptjung.github.io/Spotify-Youtube-Converter)!
 
 ## Known Bugs
 
