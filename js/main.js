@@ -16,9 +16,23 @@ function clearURLField() {
     document.getElementById('inputURL').value = '';
 }
 
-function makePlaylist(paramURL) {
-    console.log("paramURL: " + paramURL);
+function accessTrackList(paramURL) {
+    const HTML_SEARCH_LINK = "open.spotify.com/embed";
 
+    let xHttp = new XMLHttpRequest();
+    xHttp.onreadystatechange = function() {
+        if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+            let paramContent = this.responseText;
+            let indexInit = paramContent.indexOf(HTML_SEARCH_LINK);
+            let indexFin = paramContent.indexOf("\"", indexInit + 1);
+            makePlaylist(paramContent.substring(indexInit, indexFin));
+        }
+    };
+    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + paramURL, true);
+    xHttp.send();
+}
+
+function makePlaylist(paramURL) {
     const MESSAGE_CONVERT = "Converting...";
     const MESSAGE_FINISH = "Finished!";
 
@@ -44,15 +58,15 @@ function makePlaylist(paramURL) {
 
                     for (let linkIndex = 0; linkIndex < searchLinks.length; linkIndex++) {
                         setTimeout(function() {
-                            searchGoogle(searchLinks[linkIndex]);
-                        }, 115 * linkIndex);
+                            searchSpotify(searchLinks[linkIndex]);
+                        }, 250 * linkIndex);
                     }
 
                     setTimeout(function() {
                         document.getElementById("reporter").innerHTML = MESSAGE_FINISH;
                         document.getElementById("outputCopy").disabled = false;
                         document.getElementById("outputOpen").disabled = false;
-                    }, 125 * searchLinks.length);
+                    }, 500 * searchLinks.length);
                 }, 100);
             }
         };
@@ -64,11 +78,8 @@ function makePlaylist(paramURL) {
     }
 }
 
-function searchGoogle(paramSearch) {
-    console.log("paramSearch: " + paramSearch);
-
+function searchSpotify(paramSearch) {
     const HTML_SEARCH_TERM = " on Spotify";
-    const SEARCH_QUERIER = "https://www.google.com/search?q=";
 
     let xHttp = new XMLHttpRequest();
     xHttp.onreadystatechange = function() {
@@ -76,10 +87,10 @@ function searchGoogle(paramSearch) {
             let searchResults = this.responseText;
             let indexEnd = searchResults.indexOf(HTML_SEARCH_TERM);
             let indexInit = indexEnd - 1;
-            while (searchResults.substring(indexInit, indexInit + 2) != "\">") {
+            while (searchResults.charAt(indexInit) != '>') {
                 indexInit--;
             }
-            let song = searchResults.substring(indexInit + 2, indexEnd)
+            let song = searchResults.substring(indexInit + 1, indexEnd)
             song = ((((song.replace("<em>", "")).replace("</em>", "")).replace("&#39;", "")).replace("&quot;", "")).replace("<wbr>", "")
             song = song.split(", a song by ");
             song = (song[1] + " - " + song[0]);
@@ -87,13 +98,11 @@ function searchGoogle(paramSearch) {
             console.log("REQUEST SONG: " + song);
         }
     };
-    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramSearch, true);
+    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + "https://" + paramSearch, true);
     xHttp.send();
 }
 
 function addSearchVideoID(paramSong) {
-    console.log("paramSong: " + paramSong);
-
     const HTML_SEARCH_TERM = "\"videoId\":\"";
     const SEARCH_QUERIER = "https://www.youtube.com/results?search_query=";
 
@@ -104,7 +113,10 @@ function addSearchVideoID(paramSong) {
             let indexInit = searchResults.indexOf(HTML_SEARCH_TERM) + HTML_SEARCH_TERM.length;
             let indexEnd = searchResults.indexOf("\"", indexInit + 1);
             let res = searchResults.substring(indexInit, indexEnd);
-            document.getElementById("outputURL").value += res + ",";
+            let elemOutURL = document.getElementById("outputURL");
+            if ((elemOutURL.value).indexOf(res) < 0) {
+                elemOutURL.value += res + ",";
+            }
         }
     };
     xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramSong, true);
@@ -114,8 +126,7 @@ function addSearchVideoID(paramSong) {
 function getSearches(paramContent) {
     const LINK_LENGTH = 45;
     const SONG_LINK_STARTER = "open.spotify.com/track";
-    const SONG_LINK_TRUNCAT = "open.spotify.";
-
+    paramContent = paramContent.replace(/\\/g, '');
 
     // Loop through all lines in the HTML content (max: 64)
     let htmlContent = paramContent.split('\n');
@@ -141,7 +152,10 @@ function getSearches(paramContent) {
             let searches = [];
             for (let trackIndex = 0; trackIndex < trackIndices.length; trackIndex++) {
                 let linkIndex = trackIndices[trackIndex];
-                searches.push(line.substring(linkIndex + SONG_LINK_TRUNCAT.length, linkIndex + LINK_LENGTH));
+                searches.push(line.substring(linkIndex, linkIndex + LINK_LENGTH));
+            }
+            for (let trackIndex = 0; trackIndex < searches.length; trackIndex++) {
+                console.log(trackIndex + ": " + searches[trackIndex]);
             }
             return searches;
         }
