@@ -75,7 +75,7 @@ function makePlaylist(paramURL) {
                 for (let linkIndex = 0; linkIndex < searchLinks.length; linkIndex++) {
                     setTimeout(function() {
                         searchSpotify(searchLinks[linkIndex]);
-                    }, 50 * linkIndex);
+                    }, 25 * linkIndex);
                 }
 
                 setTimeout(function() {
@@ -83,7 +83,7 @@ function makePlaylist(paramURL) {
                     document.getElementById("reporter").innerHTML = MESSAGE_FINISH;
                     document.getElementById("outputCopy").disabled = false;
                     document.getElementById("outputOpen").disabled = false;
-                }, 100 * searchLinks.length);
+                }, 250 * searchLinks.length);
 
             }
         };
