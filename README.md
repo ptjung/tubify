@@ -10,16 +10,22 @@
 A website for converting Spotify playlists to YouTube playlists without logging into Spotify or registration. However, this method only supports <b>up to 50 songs per playlist.</b>
 
 Try it [here](https://ptjung.github.io/Spotify-Youtube-Converter)!
-* EDIT (2020-02-22): this may be bugged for the time being.
 
 ## Known Bugs
 
 * Excessive song requests will lead to the website being temporarily blocked by Spotify
-* In rare occasions, a completely unrelated YouTube video will be selected
-* Specific playlists being converted will not convert some specific songs
 * Invalid URIs with the correct link format will convert forever
+* In rare occasions, unrelated YouTube videos will be selected
+* Songs with special characters might not convert
 
 ## Changelog
+
+(February 29, 2020)
+* Improvements to Spotify-YouTube-Converter.
+  * Bug fix: linking errors caused the converter to stop working
+  * Improved the time it takes to convert a playlist
+  * Improved the rate of success for song picking
+  * Added conversion animation
 
 (February 9, 2020)
 * Quick patches to Spotify-YouTube-Converter.
