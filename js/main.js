@@ -1,34 +1,105 @@
+/**
+ * This file holds all of the JavaScript behind the Spotify to Youtube Playlist Converter.
+ *
+ * Uses the middle-ware: CORS Anywhere @ https://github.com/Rob--W/cors-anywhere
+ * to enable GET requests being sent to Spotify and Google.
+ *
+ *   Author: Patrick Jung
+ *     Date: 2020-02-29
+ *  Version: 1.2
+ */
+
+
+
+// GLOBAL CONSTANTS & VARIABLES
+const MESSAGE_CONVERT = "Converting";
+
+let timeSinceLinkTest = 0;
+let convertPeriodCounter = 0;
+let linkBuilder = "";
+
+
+
+/**
+ * This function resets the website's cache by emptying forms
+ */
 function resetCache() {
-    // Resets cache: empties forms
     document.getElementById("inputURL").value = "";
     document.getElementById("outputURL").value = "";
+    linkBuilder = "";
 }
 
+
+
+/**
+ * This function copies the output URL text to clipboard
+ */
 function copyToClipboard() {
-    // Copies the output URL text to clipboard
     let copyText = document.getElementById("outputURL");
     copyText.select();
     copyText.setSelectionRange(0, copyText.value.length);
     document.execCommand("copy");
 }
 
+
+
+/**
+ * This function opens a window of the link, if possible
+ */
 function openLinkWindow() {
-    // Opens a window of the link (if possible)
     let link = document.getElementById("outputURL").value;
     if (link.length > 0) {
         window.open(link);
     }
 }
 
+
+
+/**
+ * This function sets clickability of the button elements
+ */
 function setClickable(paramBoolean) {
-    // Function that makes the button elements clickable or not clickable
     document.getElementById("outputCopy").disabled = paramBoolean;
     document.getElementById("outputOpen").disabled = paramBoolean;
     document.getElementById("inputSubmit").disabled = paramBoolean;
 }
 
+
+
+/**
+ * This function updates the conversion message on the website with a string and a number of periods
+ *
+ * @param {string} paramString The base string to set the conversion message to
+ * @param {number} paramPeriodCount The number of periods
+ */
+function setConvertMessage(paramString, paramPeriodCount) {
+    for (let count = 0; count < paramPeriodCount; count++) {
+        paramString += ".";
+    }
+    document.getElementById("reporter").innerHTML = paramString;
+}
+
+
+
+/**
+ * This function updates the time since the last link text with the current milliseconds time
+ */
+function updateTimeLinkTest() {
+    let dateAtAppend = new Date();
+    timeSinceLinkTest = dateAtAppend.getTime();
+}
+
+
+
+/**
+ * This function checks if a string follows the album or playlist link format
+ *
+ * Note: cannot handle correct formatting with non-existent URIs
+ *
+ * @param {string} paramString The string to check for playlist link validity
+ * @return {boolean} Whether a string follows the album or playlist link format
+ */
 function checkLink(paramString) {
-    // Function that checks if a link is valid to be searched; does not work with checking if the URI works
     const ACCEPTABLE_SCHEMES = ["", "//", "http://", "https://"];
     const SUBSECTIONS_LIST = ["playlist/", "album/"];
     const EXPECT_LINK_MATERIAL = "open.spotify.com/";
@@ -63,17 +134,23 @@ function checkLink(paramString) {
     return false;
 }
 
+
+
+/**
+ * This function finds and accesses the embedded Spotify track list from an expected album/playlist share link
+ *
+ * @param {string} paramURL The expected URL of the Spotify track sharing link
+ */
 function accessTrackList(paramURL) {
-    const MESSAGE_CONVERT = "Converting...";
     const MESSAGE_ERROR = "Failed!";
     const HTML_SEARCH_LINK = "open.spotify.com/embed";
 
     // Report on the website that the link is loading
-    document.getElementById("reporter").innerHTML = MESSAGE_CONVERT;
+    setConvertMessage(MESSAGE_CONVERT, convertPeriodCounter);
     setClickable(true);
 
+    // This block represents a Spotify full playlist request, made if possible
     if (checkLink(paramURL)) {
-        // This block represents a Spotify full playlist request
         let xHttp = new XMLHttpRequest();
         xHttp.onreadystatechange = function() {
             if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
@@ -96,7 +173,15 @@ function accessTrackList(paramURL) {
     }
 }
 
+
+
+/**
+ * This function makes a playlist out of an expected embedded Spotify track list
+ *
+ * @param {string} paramURL The expected URL of the embedded Spotify track list
+ */
 function makePlaylist(paramURL) {
+    const TEST_FINISH_TIME = 2500;
     const MESSAGE_FINISH = "Finished!";
     const BASE_COPY_LINK = "https://www.youtube.com/watch_videos?video_ids=";
 
@@ -108,75 +193,66 @@ function makePlaylist(paramURL) {
         if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
 
             // Search and initialize base URL such that video IDs can be appended to it, to form a link
-            let searchLinks = getSearches(this.responseText);
-            if (searchLinks.length > 0) {
-                document.getElementById("outputURL").value = BASE_COPY_LINK;
+            let songsToSearch = getSearches(this.responseText);
+            if (songsToSearch.length > 0) {
+                linkBuilder = BASE_COPY_LINK;
             }
 
             // Search all the Spotify songs to get their respective YouTube video IDs (if they exist)
-            console.log("POTENTIAL SONG COUNT: " + searchLinks.length);
-            for (let linkIndex = 0; linkIndex < searchLinks.length; linkIndex++) {
-                setTimeout(function() {
-                    searchSpotify(searchLinks[linkIndex]);
-                }, 100 * linkIndex);
+            console.log("POTENTIAL SONG COUNT: " + songsToSearch.length);
+            for (let linkIndex = 0; linkIndex < songsToSearch.length; linkIndex++) {
+                addSearchVideoID(songsToSearch[linkIndex]);
             }
 
             // Report on the website that the link has finished loading
-            setTimeout(function() {
-                document.getElementById("reporter").innerHTML = MESSAGE_FINISH;
-                setClickable(false);
-            }, 350 * searchLinks.length);
+            let timedFinish = setInterval(function() {
+                let currentDate = new Date();
+                let currentDateMS = currentDate.getTime();
+                if (((currentDateMS - timeSinceLinkTest) > TEST_FINISH_TIME) && (timeSinceLinkTest > 0)) {
+
+                    // Finished loading: last update was at least TEST_FINISH_TIME milliseconds ago
+                    document.getElementById("reporter").innerHTML = MESSAGE_FINISH;
+                    document.getElementById("outputURL").value = linkBuilder;
+                    setClickable(false);
+                    clearInterval(timedFinish);
+                    console.log("TIMED FINISH: Stopped (" + (currentDateMS - timeSinceLinkTest) + " ms)");
+                }
+                else {
+                    // Still running: last update was within TEST_FINISH_TIME milliseconds ago
+                    convertPeriodCounter = ++convertPeriodCounter % 4;
+                    setConvertMessage(MESSAGE_CONVERT, convertPeriodCounter);
+                    console.log("TIMED FINISH: Running (" + (currentDateMS - timeSinceLinkTest) + " ms)");
+                    console.log("CONVERT PERIOD COUNTER: " + convertPeriodCounter);
+                }
+            }, 1000);
         }
     };
     xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + paramURL, true);
     xHttp.send();
 }
 
-function searchSpotify(paramSearch) {
-    const FILTER_ARRAY = ["<em>", "</em>", "&#39;", "&#039;", "&quot;", "<wbr>"];
-    const HTML_SEARCH_TERM = " on Spotify";
 
-    // This block represents a Spotify song query request
-    let xHttp = new XMLHttpRequest();
-    xHttp.onreadystatechange = function() {
-        if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
 
-            // Index for the Spotify song's author and title
-            let searchResults = this.responseText;
-            let indexEnd = searchResults.indexOf(HTML_SEARCH_TERM);
-            let indexInit = indexEnd - 1;
-            while (searchResults.charAt(indexInit) != '>') {
-                indexInit--;
-            }
-
-            // Sanitize the song string and put it in the "<author> - <songName>" format
-            let song = searchResults.substring(indexInit + 1, indexEnd);
-            for (let filterIndex = 0; filterIndex < FILTER_ARRAY.length; filterIndex++) {
-                song = song.replace(FILTER_ARRAY[filterIndex], "");
-            }
-            song = song.split(", a song by ");
-            song = {author: song[1], name: song[0]};
-            song = song.author + " - " + song.name;
-
-            // Use the song as a search query, for adding the video's ID to the output link
-            addSearchVideoID(song);
-        }
-    };
-    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + "https://" + paramSearch, true);
-    xHttp.send();
-}
-
-function addSearchVideoID(paramSong) {
+/**
+ * This function searches a query via Google and finds the first YouTube link occurence, and concatenates
+ * the video's ID with the website's playlist builder link
+ *
+ * @param {string} paramQuery A query to search through the Google search engine
+ */
+function addSearchVideoID(paramQuery) {
     const HTML_SEARCH_TERM = "https://www.youtube.com/watch?v=";
     const SEARCH_QUERIER = "https://www.google.com/search?q=";
 
-    // This block represents a YouTube search query request
+    // This block represents a Google search query request
+    updateTimeLinkTest();
     let xHttp = new XMLHttpRequest();
     xHttp.onreadystatechange = function() {
+
+        updateTimeLinkTest();
         if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
             let searchResults = this.responseText;
 
-            // Use Google search query to get the ID of the first video result from searching <paramSong>
+            // Use Google search query to get the ID of the first video result from searching <paramQuery>
             let firstOccurence = searchResults.indexOf(HTML_SEARCH_TERM);
             let nameIndexInit = firstOccurence + HTML_SEARCH_TERM.length;
             let nameIndexEnd = searchResults.indexOf("\"", nameIndexInit + 1);
@@ -184,75 +260,109 @@ function addSearchVideoID(paramSong) {
 
             if (firstOccurence >= 0) {
                 // Append the ID to the output YouTube link
-                let elemOutURL = document.getElementById("outputURL");
-                if ((elemOutURL.value).indexOf(resName) < 0) {
-                    elemOutURL.value += resName + ",";
+                if (linkBuilder.indexOf(resName) < 0) {
+                    linkBuilder += resName + ",";
                 }
-                console.log("APPENDED (name=\"" + paramSong + "\", id=\"" + resName + "\")");
-                console.log("CONTENT AT AREA (len=250): [" + searchResults.substring(nameIndexInit - HTML_SEARCH_TERM.length, nameIndexInit - HTML_SEARCH_TERM.length + 250)) + "]";
+                console.log("APPENDED (name=\"" + paramQuery + "\", id=\"" + resName + "\")");
+                console.log("CONTENT AT AREA (len=150): [" + searchResults.substring(nameIndexInit - HTML_SEARCH_TERM.length - 75, nameIndexInit - HTML_SEARCH_TERM.length + 75)) + "]";
             }
             else {
                 // ERROR 1: Cannot append the ID; no link is found
-                console.log("ERROR 1 (" + paramSong + "): No YouTube link found");
+                console.log("ERROR 1 (" + paramQuery + "): No YouTube link found");
             }
 
         }
         else {
             // ERROR 2: Cannot request song due to request error
-            console.log("ERROR 2 (" + paramSong + "): Song cannot be requested (readyState=\"" + this.readyState + "\", status=\"" + this.status + "\")");
+            console.log("ERROR 2 (" + paramQuery + "): Song cannot be requested (readyState=\"" + this.readyState + "\", status=\"" + this.status + "\")");
         }
+        updateTimeLinkTest();
     };
-    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramSong.replace(" ", "%20"), true);
+    updateTimeLinkTest();
+    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramQuery.replace(" ", "%20"), true);
     xHttp.send();
 }
 
+
+
+/**
+ * This function reads in the HTML content of an embedded Spotify track list and retrieves an array of all
+ * of its songs, each song in the format of "<author> - <song>"
+ *
+ * Note: in paramContent, the HTML property "name" appears in the usual cycle: author - album - author - song
+ *
+ * @param {string} paramContent The HTML content of an embedded Spotify track list
+ * @return {object} The x-length array holding x songs found from the HTML content
+ */
 function getSearches(paramContent) {
-    const LINK_LENGTH = 45;
-    const YT_VIDEO_CAP = 50;
-    const SONG_LINK_STARTER = "open.spotify.com/track";
+
+    /**
+     * This helper function takes a song builder and adds it to the search return list as a song
+     *
+     * @param {object} paramSongBuilder A song builder as an array of strings
+     */
+    function songBuilderToSearch(paramSongBuilder) {
+        let songSearch = (paramSongBuilder.slice(1)).join(" - ");
+        searchReturnList.push(songSearch);
+        console.log("PUSHED ONTO LIST: " + songSearch);
+    }
+
+    const FIND_PROP_NAME = "\"name\":\"";
+    const FIND_TRACK_NAME = "\"added_by\":{\"external_urls\"";
+    const YT_PLAYLIST_MAX_LENGTH = 50;
 
     paramContent = paramContent.replace(/\\/g, '');
 
-    // Loop through all lines in the HTML content (max: 64)
-    let htmlContent = paramContent.split('\n');
-    for (let lineIndex = 0; lineIndex < htmlContent.length; lineIndex++) {
-        let line = htmlContent[lineIndex];
+    let searchReturnList = [];
+    let songBuilder = [];
+    let songIndex = -1;
+    let indInit = 0;
 
-        // Condition for lines listing all of the songs
-        if (line.indexOf(SONG_LINK_STARTER) >= 0) {
+    console.log("EMBEDDED CONTENT:\n" + paramContent + "\n");
 
-            // Get trackIndices of the HTML
-            let songIndex = 0;
-            let trackIndices = [];
-            while (true) {
-                songIndex = line.indexOf(SONG_LINK_STARTER, songIndex);
-                if (songIndex < 0) {
-                    break;
-                }
-                trackIndices.push(songIndex);
-                songIndex++;
-            }
+    // This block records all of the authors and their respective songs in searchReturnList
+    while (paramContent.indexOf(FIND_PROP_NAME, indInit) >= 0) {
 
-            // Get searches from trackIndices
-            let searches = [];
-            for (let trackIndex = 0; trackIndex < Math.min(YT_VIDEO_CAP, trackIndices.length); trackIndex++) {
-                let linkIndex = trackIndices[trackIndex];
-                searches.push(line.substring(linkIndex, linkIndex + LINK_LENGTH));
+        // Finds an "entry", which can be any of album, author or song name
+        indInit = paramContent.indexOf(FIND_PROP_NAME, indInit) + FIND_PROP_NAME.length;
+        let indEnd = paramContent.indexOf("\"", indInit);
+        let entry = paramContent.substring(indInit, indEnd);
+        let indNext = paramContent.indexOf(FIND_TRACK_NAME, indInit);
+
+        // This block tests if the following index correlates to a newly found song
+        if (indNext != songIndex) {
+
+            // Newly found song: add "<author> - <name>" contents of songBuilder and reset the array
+            songIndex = indNext;
+            if ((songBuilder.length > 0) && (searchReturnList.length < (YT_PLAYLIST_MAX_LENGTH - 1))) {
+                songBuilderToSearch(songBuilder);
             }
-            for (let trackIndex = 0; trackIndex < searches.length; trackIndex++) {
-                console.log("TRACK #" + (trackIndex + 1) + ": " + searches[trackIndex]);
-            }
-            return searches;
+            songBuilder = [];
         }
+        else {
+            // Same song: push entry onto songBuilder
+            songBuilder.push(entry);
+        }
+        updateTimeLinkTest();
     }
-    return [];
+
+    // Add the last built song
+    songBuilderToSearch(songBuilder);
+    updateTimeLinkTest();
+
+    // Return the final array of songs to search
+    return searchReturnList;
 }
 
-function init() {
+
+
+/**
+ * This function is initially ran at the start of the program
+ */
+(function () {
     // Runs on loading main.js
-    console.log("< main.js >");
     setTimeout(function() {
+        console.log("< main.js >");
         resetCache();
     }, 1);
-}
-init();
+}());
