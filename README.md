@@ -13,16 +13,16 @@ Try it [here](https://ptjung.github.io/Spotify-Youtube-Converter)!
 
 ## Known Bugs
 
-* Excessive song requests will lead to the website being temporarily blocked by Spotify
 * Invalid URIs with the correct link format will convert forever
 * In rare occasions, unrelated YouTube videos will be selected
-* Songs with special characters might not convert
+* Specific playlists will be unable to convert specific songs
 
 ## Changelog
 
-(February 29, 2020)
+(March 1, 2020)
 * Improvements to Spotify-YouTube-Converter.
   * Bug fix: linking errors caused the converter to stop working
+  * Bug fix: songs with special characters might not convert
   * Improved the time it takes to convert a playlist
   * Improved the rate of success for song picking
   * Added conversion animation
