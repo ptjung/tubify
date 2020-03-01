@@ -225,7 +225,7 @@ function makePlaylist(paramURL) {
             // Search all the Spotify songs to get their respective YouTube video IDs (if they exist)
             console.log("POTENTIAL SONG COUNT: " + songsToSearch.length);
             for (let linkIndex = 0; linkIndex < songsToSearch.length; linkIndex++) {
-                addSearchVideoID(songsToSearch[linkIndex]);
+                addSearchVideoID(songsToSearch[linkIndex], 0);
             }
 
             // Report on the website that the link has finished loading
@@ -248,7 +248,7 @@ function makePlaylist(paramURL) {
                     console.log("TIMED FINISH: Running (" + (currentDateMS - timeSinceLinkTest) + " ms)");
                     console.log("CONVERT PERIOD COUNTER: " + convertPeriodCounter);
                 }
-            }, 1000);
+            }, 250);
         }
     };
     xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + paramURL, true);
@@ -262,14 +262,22 @@ function makePlaylist(paramURL) {
  * the video's ID with the website's playlist builder link
  *
  * @param {string} paramQuery A query to search through the Google search engine
+ * @param {number} currentRetries The current number of retries
  */
-function addSearchVideoID(paramQuery) {
+function addSearchVideoID(paramQuery, currentTries) {
+    const FAILURE_RETRIES = 2;
     const HTML_SEARCH_TERM = "https://www.youtube.com/watch?v=";
     const SEARCH_QUERIER = "https://www.google.com/search?q=";
 
     // This block represents a Google search query request
     updateTimeLinkTest();
-    paramQuery = encodeURI(sanitizeString(paramQuery)).replace(/%20/g, '+');
+    if (currentTries == 0) {
+        paramQuery = encodeURI(sanitizeString(paramQuery)).replace(/%20/g, '+');
+    }
+    else if (currentTries > FAILURE_RETRIES) {
+        return;
+    }
+
     let xHttp = new XMLHttpRequest();
     xHttp.onreadystatechange = function() {
 
@@ -300,12 +308,17 @@ function addSearchVideoID(paramQuery) {
 
         }
         else {
-            // ERROR 2: Cannot request song due to request error
+            // ERROR 2: Cannot request song due to request error; retry recursively
             console.log("ERROR 2 (" + paramQuery + "): Song cannot be requested (readyState=\"" + this.readyState + "\", status=\"" + this.status + "\")");
+
+            if (this.status != 429) {
+                addSearchVideoID(paramQuery, ++currentTries);
+            }
+            return;
         }
     };
     updateTimeLinkTest();
-    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramQuery, true);
+    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramQuery, false);
     xHttp.send();
 }
 
@@ -349,7 +362,7 @@ function getSearches(paramContent) {
 
         // Finds an "entry", which can be any of album, author or song name
         indInit = paramContent.indexOf(FIND_PROP_NAME, indInit) + FIND_PROP_NAME.length;
-        let indEnd = paramContent.indexOf("\"", indInit);
+        let indEnd = paramContent.indexOf("\",", indInit);
         let entry = paramContent.substring(indInit, indEnd);
         let indNext = paramContent.indexOf(FIND_TRACK_NAME, indInit);
 
