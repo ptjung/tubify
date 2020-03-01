@@ -320,7 +320,7 @@ function addSearchVideoID(paramQuery, currentTries) {
         }
     };
     updateTimeLinkTest();
-    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramQuery, false);
+    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramQuery + " site:youtube.com", false);
     xHttp.send();
 }
 
@@ -404,7 +404,7 @@ function getSearches(paramContent) {
 (function () {
     // Runs on loading main.js
     setTimeout(function() {
-        console.log("< main.js-1.2 >");
+        console.log("< main.js-1.2.1 >");
         resetCache();
     }, 1);
 }());
