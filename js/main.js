@@ -225,7 +225,9 @@ function makePlaylist(paramURL) {
             // Search all the Spotify songs to get their respective YouTube video IDs (if they exist)
             console.log("POTENTIAL SONG COUNT: " + songsToSearch.length);
             for (let linkIndex = 0; linkIndex < songsToSearch.length; linkIndex++) {
-                addSearchVideoID(songsToSearch[linkIndex], 0);
+                setTimeout(function () {
+                    addSearchVideoID(songsToSearch[linkIndex], 0);
+                }, 100 * linkIndex);
             }
 
             // Report on the website that the link has finished loading
@@ -248,7 +250,7 @@ function makePlaylist(paramURL) {
                     console.log("TIMED FINISH: Running (" + (currentDateMS - timeSinceLinkTest) + " ms)");
                     console.log("CONVERT PERIOD COUNTER: " + convertPeriodCounter);
                 }
-            }, 250);
+            }, 100);
         }
     };
     xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + paramURL, true);
@@ -402,7 +404,7 @@ function getSearches(paramContent) {
 (function () {
     // Runs on loading main.js
     setTimeout(function() {
-        console.log("< main.js >");
+        console.log("< main.js-1.2 >");
         resetCache();
     }, 1);
 }());
