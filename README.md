@@ -25,6 +25,7 @@ Try it [here](https://ptjung.github.io/Spotify-Youtube-Converter)!
   * Bug fix: songs with special characters might not convert
   * Improved the time it takes to convert a playlist
   * Improved the rate of success for song picking
+  * Reduced the number of search query requests sent to Google
   * Added conversion animation
 
 (February 9, 2020)
