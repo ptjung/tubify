@@ -5,7 +5,7 @@
  * to enable GET requests being sent to Spotify and Google.
  *
  *   Author: Patrick Jung
- *     Date: 2020-02-29
+ *     Date: 2020-03-01
  *  Version: 1.2
  */
 
@@ -90,6 +90,29 @@ function updateTimeLinkTest() {
 }
 
 
+/**
+ * This function "sanitizes" a string by converting non-meta characters with metacharacter format
+ * into an entire metacharacter string (i.e. looks the same but all special characters work)
+ *
+ * @param {string} paramString The string to sanitize
+ * @return {string} The sanitized string
+ */
+function sanitizeString(paramString) {
+    let newString = "";
+    for (let index = 0; index < paramString.length; index++) {
+        let currentChar = paramString.substring(index, index + 1);
+        if (!(currentChar.localeCompare('\\') == 0)) {
+            newString += paramString.charAt(index);
+        }
+        else {
+            newString += unescape('%u' + paramString.substring(index + 2, index + 6));
+            index += 5;
+        }
+    }
+    return newString;
+}
+
+
 
 /**
  * This function checks if a string follows the album or playlist link format
@@ -148,6 +171,7 @@ function accessTrackList(paramURL) {
     // Report on the website that the link is loading
     setConvertMessage(MESSAGE_CONVERT, convertPeriodCounter);
     setClickable(true);
+    document.getElementById("outputURL").value = "";
 
     // This block represents a Spotify full playlist request, made if possible
     if (checkLink(paramURL)) {
@@ -245,26 +269,29 @@ function addSearchVideoID(paramQuery) {
 
     // This block represents a Google search query request
     updateTimeLinkTest();
+    paramQuery = encodeURI(sanitizeString(paramQuery)).replace(/%20/g, '+');
     let xHttp = new XMLHttpRequest();
     xHttp.onreadystatechange = function() {
 
-        updateTimeLinkTest();
         if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
             let searchResults = this.responseText;
 
             // Use Google search query to get the ID of the first video result from searching <paramQuery>
             let firstOccurence = searchResults.indexOf(HTML_SEARCH_TERM);
             let nameIndexInit = firstOccurence + HTML_SEARCH_TERM.length;
-            let nameIndexEnd = searchResults.indexOf("\"", nameIndexInit + 1);
+            let nameIndexEnd = Math.min(searchResults.indexOf("\"", nameIndexInit + 1), searchResults.indexOf("&", nameIndexInit + 1));
             let resName = searchResults.substring(nameIndexInit, nameIndexEnd);
 
             if (firstOccurence >= 0) {
                 // Append the ID to the output YouTube link
                 if (linkBuilder.indexOf(resName) < 0) {
                     linkBuilder += resName + ",";
+                    console.log("APPENDED (name=\"" + paramQuery + "\", id=\"" + resName + "\")");
+                    console.log("CONTENT AT AREA (len=150): [" + searchResults.substring(nameIndexInit - HTML_SEARCH_TERM.length - 75, nameIndexInit - HTML_SEARCH_TERM.length + 75)) + "]";
                 }
-                console.log("APPENDED (name=\"" + paramQuery + "\", id=\"" + resName + "\")");
-                console.log("CONTENT AT AREA (len=150): [" + searchResults.substring(nameIndexInit - HTML_SEARCH_TERM.length - 75, nameIndexInit - HTML_SEARCH_TERM.length + 75)) + "]";
+                else {
+                    console.log("FOUND DUPLICATE, SKIPPING (name=\"" + paramQuery + "\", id=\"" + resName + "\")");
+                }
             }
             else {
                 // ERROR 1: Cannot append the ID; no link is found
@@ -276,10 +303,9 @@ function addSearchVideoID(paramQuery) {
             // ERROR 2: Cannot request song due to request error
             console.log("ERROR 2 (" + paramQuery + "): Song cannot be requested (readyState=\"" + this.readyState + "\", status=\"" + this.status + "\")");
         }
-        updateTimeLinkTest();
     };
     updateTimeLinkTest();
-    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramQuery.replace(" ", "%20"), true);
+    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramQuery, true);
     xHttp.send();
 }
 
@@ -311,14 +337,12 @@ function getSearches(paramContent) {
     const FIND_TRACK_NAME = "\"added_by\":{\"external_urls\"";
     const YT_PLAYLIST_MAX_LENGTH = 50;
 
-    paramContent = paramContent.replace(/\\/g, '');
+    // paramContent = paramContent.replace(/\\/g, '');
 
     let searchReturnList = [];
     let songBuilder = [];
     let songIndex = -1;
     let indInit = 0;
-
-    console.log("EMBEDDED CONTENT:\n" + paramContent + "\n");
 
     // This block records all of the authors and their respective songs in searchReturnList
     while (paramContent.indexOf(FIND_PROP_NAME, indInit) >= 0) {
@@ -334,7 +358,10 @@ function getSearches(paramContent) {
 
             // Newly found song: add "<author> - <name>" contents of songBuilder and reset the array
             songIndex = indNext;
-            if ((songBuilder.length > 0) && (searchReturnList.length < (YT_PLAYLIST_MAX_LENGTH - 1))) {
+            if (searchReturnList.length >= (YT_PLAYLIST_MAX_LENGTH - 1)) {
+                break;
+            }
+            else if (songBuilder.length > 0) {
                 songBuilderToSearch(songBuilder);
             }
             songBuilder = [];
