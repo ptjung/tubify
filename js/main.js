@@ -6,7 +6,7 @@
  *
  *   Author: Patrick Jung
  *     Date: 2020-03-01
- *  Version: 1.2
+ *  Version: 1.2.1
  */
 
 
@@ -227,7 +227,7 @@ function makePlaylist(paramURL) {
             for (let linkIndex = 0; linkIndex < songsToSearch.length; linkIndex++) {
                 setTimeout(function () {
                     addSearchVideoID(songsToSearch[linkIndex], 0);
-                }, 100 * linkIndex);
+                }, 200 * linkIndex);
             }
 
             // Report on the website that the link has finished loading
@@ -250,7 +250,7 @@ function makePlaylist(paramURL) {
                     console.log("TIMED FINISH: Running (" + (currentDateMS - timeSinceLinkTest) + " ms)");
                     console.log("CONVERT PERIOD COUNTER: " + convertPeriodCounter);
                 }
-            }, 100);
+            }, 250);
         }
     };
     xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + paramURL, true);
@@ -266,9 +266,8 @@ function makePlaylist(paramURL) {
  * @param {string} paramQuery A query to search through the Google search engine
  * @param {number} currentRetries The current number of retries
  */
-function addSearchVideoID(paramQuery, currentTries) {
-    const FAILURE_RETRIES = 2;
-    const YOUTUBE_ONLY_KEY = "+site:youtube.com";
+function addSearchVideoID(paramQuery, currentTries, optionalQuery = "") {
+    const FAILURE_RETRIES = 1;
     const HTML_SEARCH_TERM = "https://www.youtube.com/watch?v=";
     const SEARCH_QUERIER = "https://www.google.com/search?q=";
 
@@ -277,7 +276,7 @@ function addSearchVideoID(paramQuery, currentTries) {
     if (currentTries == 0) {
         paramQuery = encodeURI(sanitizeString(paramQuery)).replace(/%20/g, '+');
     }
-    else if (currentTries > FAILURE_RETRIES) {
+    else if (currentTries > (FAILURE_RETRIES + ((optionalQuery == "") ? 0 : 1))) {
         return;
     }
 
@@ -307,21 +306,29 @@ function addSearchVideoID(paramQuery, currentTries) {
             else {
                 // ERROR 1: Cannot append the ID; no link is found
                 console.log("ERROR 1 (" + paramQuery + "): No YouTube link found");
-            }
 
+                if (this.status != 429 && this.status != 0 && this.readyState > 1 && (optionalQuery == "")) {
+                    setTimeout(function () {
+                        addSearchVideoID(paramQuery, ++currentTries, "+site:youtube.com");
+                    }, 100);
+                }
+                return;
+            }
         }
         else {
             // ERROR 2: Cannot request song due to request error; retry recursively
             console.log("ERROR 2 (" + paramQuery + "): Song cannot be requested (readyState=\"" + this.readyState + "\", status=\"" + this.status + "\")");
 
-            if (this.status != 429) {
-                addSearchVideoID(paramQuery, ++currentTries);
+            if (this.status != 429 && this.status != 0 && this.readyState > 1) {
+                setTimeout(function () {
+                    addSearchVideoID(paramQuery, ++currentTries);
+                }, 100);
             }
             return;
         }
     };
     updateTimeLinkTest();
-    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramQuery + YOUTUBE_ONLY_KEY, false);
+    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramQuery + optionalQuery, false);
     xHttp.send();
 }
 
