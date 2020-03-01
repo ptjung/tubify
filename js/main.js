@@ -268,6 +268,7 @@ function makePlaylist(paramURL) {
  */
 function addSearchVideoID(paramQuery, currentTries) {
     const FAILURE_RETRIES = 2;
+    const YOUTUBE_ONLY_KEY = "+site:youtube.com";
     const HTML_SEARCH_TERM = "https://www.youtube.com/watch?v=";
     const SEARCH_QUERIER = "https://www.google.com/search?q=";
 
@@ -320,7 +321,7 @@ function addSearchVideoID(paramQuery, currentTries) {
         }
     };
     updateTimeLinkTest();
-    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramQuery + " site:youtube.com", false);
+    xHttp.open("GET", "https://cors-anywhere.herokuapp.com/" + SEARCH_QUERIER + paramQuery + YOUTUBE_ONLY_KEY, false);
     xHttp.send();
 }
 
