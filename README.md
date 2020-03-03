@@ -14,8 +14,7 @@ Try it [here](https://ptjung.github.io/Spotify-Youtube-Converter)!
 ## Known Bugs
 
 * Invalid URIs with the correct link format will convert forever
-* In rare occasions, unrelated YouTube videos will be selected
-* Specific playlists will be unable to convert specific songs
+* In rare occasions, different YouTube videos will be selected
 
 ## Changelog
 
