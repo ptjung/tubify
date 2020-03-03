@@ -265,6 +265,7 @@ function makePlaylist(paramURL) {
  *
  * @param {string} paramQuery A query to search through the Google search engine
  * @param {number} currentRetries The current number of retries
+ * @param {string} optionalQuery An optional string to go along with the seach query that is appended to the end of it
  */
 function addSearchVideoID(paramQuery, currentTries, optionalQuery = "") {
     const FAILURE_RETRIES = 1;
@@ -274,7 +275,7 @@ function addSearchVideoID(paramQuery, currentTries, optionalQuery = "") {
     // This block represents a Google search query request
     updateTimeLinkTest();
     if (currentTries == 0) {
-        paramQuery = encodeURI(sanitizeString(paramQuery)).replace(/%20/g, '+');
+        paramQuery = encodeURI(sanitizeString(paramQuery)).replace(/%20/g, '+').replace(/&/g, '%26');
     }
     else if (currentTries > (FAILURE_RETRIES + ((optionalQuery == "") ? 0 : 1))) {
         return;
@@ -289,7 +290,7 @@ function addSearchVideoID(paramQuery, currentTries, optionalQuery = "") {
             // Use Google search query to get the ID of the first video result from searching <paramQuery>
             let firstOccurence = searchResults.indexOf(HTML_SEARCH_TERM);
             let nameIndexInit = firstOccurence + HTML_SEARCH_TERM.length;
-            let nameIndexEnd = Math.min(searchResults.indexOf("\"", nameIndexInit + 1), searchResults.indexOf("&", nameIndexInit + 1));
+            let nameIndexEnd = Math.min(searchResults.lastIndexOf("\"", searchResults.indexOf("=\"", nameIndexInit + 1)), searchResults.indexOf("&amp;", nameIndexInit + 1));
             let resName = searchResults.substring(nameIndexInit, nameIndexEnd);
 
             if (firstOccurence >= 0) {
