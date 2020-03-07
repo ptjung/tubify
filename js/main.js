@@ -13,10 +13,12 @@
 
 // GLOBAL CONSTANTS & VARIABLES
 const MESSAGE_CONVERT = "Converting";
+const MESSAGE_MANY_REQUESTS = " Too many requests! Come back later.";
 
 let timeSinceLinkTest = 0;
 let convertPeriodCounter = 0;
 let linkBuilder = "";
+let failureMessage = "";
 
 
 
@@ -192,7 +194,7 @@ function accessTrackList(paramURL) {
     else {
         // Invalid request; link material not found
         console.log("INVALID REQUEST");
-        document.getElementById("reporter").innerHTML = MESSAGE_ERROR;
+        document.getElementById("reporter").innerHTML = MESSAGE_ERROR + failureMessage;
         setClickable(false);
     }
 }
@@ -237,7 +239,7 @@ function makePlaylist(paramURL) {
                 if (((currentDateMS - timeSinceLinkTest) > TEST_FINISH_TIME) && (timeSinceLinkTest > 0)) {
 
                     // Finished loading: last update was at least TEST_FINISH_TIME milliseconds ago
-                    document.getElementById("reporter").innerHTML = MESSAGE_FINISH;
+                    document.getElementById("reporter").innerHTML = MESSAGE_FINISH + failureMessage;
                     document.getElementById("outputURL").value = linkBuilder;
                     setClickable(false);
                     clearInterval(timedFinish);
@@ -246,7 +248,7 @@ function makePlaylist(paramURL) {
                 else {
                     // Still running: last update was within TEST_FINISH_TIME milliseconds ago
                     convertPeriodCounter = ++convertPeriodCounter % 4;
-                    setConvertMessage(MESSAGE_CONVERT, convertPeriodCounter);
+                    setConvertMessage(MESSAGE_CONVERT + failureMessage, convertPeriodCounter);
                     console.log("TIMED FINISH: Running (" + (currentDateMS - timeSinceLinkTest) + " ms)");
                     console.log("CONVERT PERIOD COUNTER: " + convertPeriodCounter);
                 }
@@ -320,7 +322,13 @@ function addSearchVideoID(paramQuery, currentTries, optionalQuery = "") {
             // ERROR 2: Cannot request song due to request error; retry recursively
             console.log("ERROR 2 (" + paramQuery + "): Song cannot be requested (readyState=\"" + this.readyState + "\", status=\"" + this.status + "\")");
 
-            if (this.status != 429 && this.status != 0 && this.readyState > 1) {
+            if (this.status == 429) {
+                // If there were too many requests sent prior, notify the user
+                failureMessage = MESSAGE_MANY_REQUESTS;
+            }
+            else if (this.status != 0 && this.readyState > 1) {
+                // If the request returns any other error codes, try again
+                failureMessage = "";
                 setTimeout(function () {
                     addSearchVideoID(paramQuery, ++currentTries);
                 }, 100);
@@ -413,7 +421,7 @@ function getSearches(paramContent) {
 (function () {
     // Runs on loading main.js
     setTimeout(function() {
-        console.log("< main.js-1.2.1 >");
+        console.log("< main.js-1.2.2 >");
         resetCache();
     }, 1);
 }());
