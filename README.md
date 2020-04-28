@@ -5,16 +5,18 @@
 
 
 
-## Program Description
+## Website Description
 
-A website for converting Spotify playlists to YouTube playlists without logging into Spotify or registration. However, this method only supports <b>up to 50 songs per playlist</b> and does not handle duplicate songs.
+Ever wanted to share songs with a person without having to link your personal playlist? Perhaps you have Spotify Free and the ads bother you? To combat this, you can convert your Spotify playlist to a Youtube playlist. But even here, websites may prompt Spotify credentials or want you to register, and you can't bother trusting the website for such a small task.
+
+This is a website dedicated to supporting those needs; you simply link a Spotify playlist or album and let it do the work. The method used only supports <b>up to 50 unique songs per playlist</b> due to YouTube's set limit for anonymous playlists.
 
 Try it [here](https://ptjung.github.io/Spotify-Youtube-Converter)!
 
 ## Known Bugs
 
-* Pairs of songs with incredibly similar names may be thought of as the same song (and skipped due to duplicate handling)
-* This service shares a number of requests in a timeframe and can run out at any point
+* Pairs of songs with incredibly similar names may be thought of as the same song, skipped due to duplicate handling
+* This service shares a number of requests in a timeframe and can run out at any point temporarily
 * Invalid URIs with the correct link format will convert forever
 * In rare occasions, different YouTube videos will be selected
 
