@@ -1,7 +1,5 @@
 # Spotify to YouTube Playlist Converter
-<p align="center">
-  <img width="800" height="400" src="https://i.imgur.com/imn7awQ.png">
-</p>
+![](readme-demo/demo.gif)
 
 
 
