@@ -1,4 +1,4 @@
-# Spotify to YouTube Playlist Converter
+# Tubify
 ![](readme-demo/demo.gif)
 
 
@@ -7,9 +7,9 @@
 
 Ever wanted to share songs with a person without having to link your personal playlist? Perhaps you have Spotify Free and the ads bother you? To combat this, you can convert your Spotify playlist to a Youtube playlist. But even here, conversion websites may prompt for Spotify credentials or registration, and you can't bother trusting the website for such a small task.
 
-This is a website dedicated to promoting those needs; simply link a Spotify playlist and let it convert! Due to YouTube's set limit for anonymous playlists, it can only support <b>up to 50 unique songs per playlist</b>.
+Tubify is a website dedicated to promoting those needs; simply link a Spotify playlist and let it convert! Due to YouTube's set limit for anonymous playlists, it can only support <b>up to 50 unique songs per playlist</b>.
 
-Try it [here](https://ptjung.github.io/Spotify-Youtube-Converter)!
+Try it [here](https://ptjung.github.io/Tubify/)!
 
 ## Known Bugs
 
